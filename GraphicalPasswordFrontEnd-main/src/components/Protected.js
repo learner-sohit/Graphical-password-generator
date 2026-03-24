@@ -11,7 +11,7 @@ const Protected = ({ Component }) => {
         if (!login) {
             navigate("/login");
         }
-    });
+    }, [navigate]);
 
     return (
         <div>

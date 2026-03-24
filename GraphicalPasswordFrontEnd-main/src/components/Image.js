@@ -20,7 +20,6 @@ const Image = ({ imageSrc, imageId, func }) => {
   return (
       <div onClick={handelClick}>
         <img
-          class="rounded-t-lg"
           src={imageSrc}
           alt=""
           onClick={() => func(imageId)}

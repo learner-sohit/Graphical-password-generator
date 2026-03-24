@@ -6,6 +6,12 @@ import Loader from "./Loader";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../features/user";
+import {
+  extractErrorMessage,
+  isValidEmail,
+  normalizeEmail,
+  normalizeTheme,
+} from "../utils/auth";
 
 
 const Login = ({ toastFunction }) => {
@@ -23,46 +29,98 @@ const Login = ({ toastFunction }) => {
   const dispatch = useDispatch();
 
   const handelSubmit = () => {
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedTheme = normalizeTheme(theme);
+
+    if (!isValidEmail(normalizedEmail)) {
+      toastFunction("Please enter a valid email address.", 0);
+      return;
+    }
+
+    if (normalizedTheme.length < 2) {
+      toastFunction("Please enter a valid theme.", 0);
+      return;
+    }
+
     setNextLoading(true);
     const url = baseURL + "/login";
     axios({
       method: "POST",
       url,
       data: {
-        email,
-        theme,
+        email: normalizedEmail,
+        theme: normalizedTheme,
       },
     })
       .then((resp) => {
         setNextLoading(false);
+        setId([]);
+        setLinks([]);
         setAllId(resp.data.Ids);
         setShowModal(true);
       })
       .catch((err) => {
         setNextLoading(false);
-        toastFunction(err.response.data, 0);
+        toastFunction(extractErrorMessage(err, "Unable to start login."), 0);
       });
   };
 
   useEffect(() => {
+    if (allId.length === 0) {
+      return undefined;
+    }
+
+    let ignore = false;
+
     const fetchImageLinks = async () => {
-      for (let i = 0; i < allId.length; i++) {
-        let url = `https://api.unsplash.com/photos/${allId[i]}?client_id=${process.env.REACT_APP_CLIENT}`;
-        const fetchedLink = await axios.get(url);
-        setLinks((current) => [...current, fetchedLink.data]);
+      try {
+        const fetchedLinks = await Promise.all(
+          allId.map((imageId) =>
+            axios.get(`https://api.unsplash.com/photos/${imageId}`, {
+              params: {
+                client_id: process.env.REACT_APP_CLIENT,
+              },
+            })
+          )
+        );
+
+        if (!ignore) {
+          setLinks(fetchedLinks.map((response) => response.data));
+        }
+      } catch (error) {
+        if (!ignore) {
+          toastFunction(extractErrorMessage(error, "Unable to load login images."), 0);
+          setShowModal(false);
+          setAllId([]);
+          setLinks([]);
+        }
       }
     };
+
     fetchImageLinks();
-  }, [allId]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [allId, toastFunction]);
 
   const handelImageClick = (imageId) => {
     setId(id => id.concat(imageId));
   };
 
   const handelModalSubmit = () => {
+    if (id.length === 0) {
+      toastFunction("Please select at least one image.", 0);
+      return;
+    }
+
     setNextLoading(true);
     const url = baseURL + '/loginVerify';
-    const data = { id, theme };
+    const data = {
+      email: normalizeEmail(email),
+      id,
+      theme: normalizeTheme(theme),
+    };
     axios({
       method: "POST",
       url,
@@ -82,7 +140,7 @@ const Login = ({ toastFunction }) => {
       })
       .catch((err) => {
         setNextLoading(false);
-        toastFunction(err.response.data, 0);
+        toastFunction(extractErrorMessage(err, "Unable to verify the graphical password."), 0);
         setEmail("");
         setTheme("");
         setShowModal(false);

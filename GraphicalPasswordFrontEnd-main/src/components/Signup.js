@@ -6,6 +6,12 @@ import Loader from "./Loader";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login } from "../features/user";
+import {
+  extractErrorMessage,
+  isValidEmail,
+  normalizeEmail,
+  normalizeTheme,
+} from "../utils/auth";
 
 const Signup = ({toastFunction}) => {
     
@@ -16,21 +22,58 @@ const Signup = ({toastFunction}) => {
   const [showModal, setShowModal] = useState(false);
   const [links, setLinks] = useState([]);
   const [id, setId] = useState([]);
-    
-  const URL = `https://api.unsplash.com/search/photos?query=${theme}&client_id=${process.env.REACT_APP_CLIENT}`;
-  
+  const baseURL = process.env.REACT_APP_BACKEND_BASE_URL;
+  const unsplashAccessKey = process.env.REACT_APP_CLIENT;
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handelSubmit = async () => {
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedTheme = normalizeTheme(theme);
+
+    if (!isValidEmail(normalizedEmail)) {
+      toastFunction("Please enter a valid email address.", 0);
+      return;
+    }
+
+    if (normalizedTheme.length < 2) {
+      toastFunction("Please enter a theme with at least 2 characters.", 0);
+      return;
+    }
+
+    if (!baseURL || !unsplashAccessKey) {
+      toastFunction("Missing frontend environment settings.", 0);
+      return;
+    }
+
     setNextLoading(true);
-    const { data } = await axios.get(URL);
-    const photos = data.results;
-    photos.pop();  
-    setLinks([...photos]);
-    setNextLoading(false);
-    setShowModal(true);
-    };
+
+    try {
+      const { data } = await axios.get("https://api.unsplash.com/search/photos", {
+        params: {
+          query: normalizedTheme,
+          client_id: unsplashAccessKey,
+          per_page: 9,
+        },
+      });
+
+      const photos = data.results.slice(0, 9);
+
+      if (photos.length === 0) {
+        toastFunction("No images found for that theme. Try another one.", 0);
+        return;
+      }
+
+      setLinks(photos);
+      setId([]);
+      setShowModal(true);
+    } catch (error) {
+      toastFunction(extractErrorMessage(error, "Unable to load images right now."), 0);
+    } finally {
+      setNextLoading(false);
+    }
+  };
   
 
     const handelImageClick = (imageId) => {
@@ -39,10 +82,19 @@ const Signup = ({toastFunction}) => {
 
   
   const handelModalSubmit = async () => {
+      if (id.length === 0) {
+        toastFunction("Please select at least one image.", 0);
+        return;
+      }
+
       setNextLoading(true);
-      const baseURL = process.env.REACT_APP_BACKEND_BASE_URL;
       const url = baseURL + "/signup";
-      const data = { theme, email, links, id };
+      const data = {
+        theme: normalizeTheme(theme),
+        email: normalizeEmail(email),
+        links,
+        id,
+      };
       axios({
         method: 'POST',
         url,
@@ -60,10 +112,12 @@ const Signup = ({toastFunction}) => {
         })
         .catch((err) => {
           setNextLoading(false);
-          toastFunction(err.response.data, 0);
+          toastFunction(extractErrorMessage(err, "Unable to create the account."), 0);
           setShowModal(false);
           setEmail("");
           setTheme("");
+          setId([]);
+          setLinks([]);
         });
   };
 

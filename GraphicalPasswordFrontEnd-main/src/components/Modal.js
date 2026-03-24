@@ -28,7 +28,7 @@ const Modal = ({ link, handelImageClick, handelModalSubmit, type, loading }) => 
               type="button"
               onClick={handelModalSubmit}
               disabled={loading}
-              class="bg-blue-500 rounded-md w-11/12 p-2 hover:bg-blue-950 hover:text-white font-medium text-sm px-5 py-2.5 text-center mb-2 mt-10"
+              className="bg-blue-500 rounded-md w-11/12 p-2 hover:bg-blue-950 hover:text-white font-medium text-sm px-5 py-2.5 text-center mb-2 mt-10"
             >
               {type}
             </button>

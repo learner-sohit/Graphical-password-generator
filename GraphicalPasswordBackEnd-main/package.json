@@ -1,19 +1,21 @@
 {
   "dependencies": {
-    "cors": "^2.8.5",
-    "crypto-js": "^4.1.1",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "mongoose": "^7.0.3",
-    "node-fetch": "^2.6.9",
-    "nodemon": "^2.0.22",
-    "unsplash-js": "^7.0.15"
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "mongoose": "^7.8.9"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   },
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
