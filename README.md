@@ -30,6 +30,7 @@ The project is designed to explore a more memorable and user-friendly alternativ
 - React Router
 - Redux Toolkit
 - Axios
+- Vite
 - Tailwind CSS
 - React Toastify
 
@@ -88,6 +89,7 @@ The application was updated to address multiple security issues.
 - Added `helmet` for safer HTTP defaults
 - Restricted CORS to configured frontend origins
 - Reduced unnecessary package exposure and updated vulnerable dependencies
+- Hardened Git ignore rules for env files, logs, and PID/runtime artifacts
 
 ## Environment Variables
 
@@ -97,8 +99,8 @@ Create [GraphicalPasswordFrontEnd-main/.env](/Users/sohit/Documents/New%20projec
 
 ```env
 PORT=3000
-REACT_APP_BACKEND_BASE_URL=http://127.0.0.1:5001
-REACT_APP_CLIENT=YOUR_UNSPLASH_ACCESS_KEY
+VITE_BACKEND_BASE_URL=http://127.0.0.1:5001
+VITE_CLIENT=YOUR_UNSPLASH_ACCESS_KEY
 ```
 
 ### Backend
@@ -109,6 +111,22 @@ Create [GraphicalPasswordBackEnd-main/.env](/Users/sohit/Documents/New%20project
 PORT=5001
 MONGO_URI=mongodb://127.0.0.1:27017/graphical_password
 FRONTEND_ORIGIN=http://127.0.0.1:3000
+```
+
+## GitHub Safety
+
+To avoid exposing secrets or local runtime files in GitHub:
+
+- Keep real credentials only in local `.env` files
+- Commit only `.env.sample` files with placeholders
+- Ignore runtime artifacts like `*.log` and `*.pid`
+
+Before pushing, run:
+
+```bash
+git status --short
+git ls-files | rg '(^|/)\.env($|\.)|\.log$|\.pid$'
+git ls-files -z | xargs -0 rg -n --no-heading -i '(api[_-]?key|secret|token|private[_-]?key|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY)'
 ```
 
 ## Installation
@@ -202,11 +220,10 @@ Verifies the selected graphical password against the stored hash.
 - Frontend and backend run successfully in local development
 - Production frontend build compiles successfully
 - Backend dependency audit is clean
-- Remaining frontend audit findings are limited to the legacy CRA development toolchain
+- Frontend dependency audit is clean
 
 ## Future Enhancements
 
-- Replace `react-scripts` with a modern build tool such as Vite
 - Add proper session or token-based authentication
 - Add automated tests for auth flows
 - Improve accessibility and keyboard navigation for image selection

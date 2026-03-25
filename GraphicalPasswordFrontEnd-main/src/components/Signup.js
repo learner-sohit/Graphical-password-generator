@@ -22,8 +22,8 @@ const Signup = ({toastFunction}) => {
   const [showModal, setShowModal] = useState(false);
   const [links, setLinks] = useState([]);
   const [id, setId] = useState([]);
-  const baseURL = process.env.REACT_APP_BACKEND_BASE_URL;
-  const unsplashAccessKey = process.env.REACT_APP_CLIENT;
+  const baseURL = import.meta.env.VITE_BACKEND_BASE_URL;
+  const unsplashAccessKey = import.meta.env.VITE_CLIENT;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();

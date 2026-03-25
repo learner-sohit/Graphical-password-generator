@@ -23,7 +23,7 @@ const Login = ({ toastFunction }) => {
   const [id, setId] = useState([]);
   const [allId, setAllId] = useState([]);
 
-  const baseURL = process.env.REACT_APP_BACKEND_BASE_URL;
+  const baseURL = import.meta.env.VITE_BACKEND_BASE_URL;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -78,7 +78,7 @@ const Login = ({ toastFunction }) => {
           allId.map((imageId) =>
             axios.get(`https://api.unsplash.com/photos/${imageId}`, {
               params: {
-                client_id: process.env.REACT_APP_CLIENT,
+                client_id: import.meta.env.VITE_CLIENT,
               },
             })
           )
